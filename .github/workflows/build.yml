@@ -1,1 +1,65 @@
+name: Build and Release
 
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "版本号 (默认为 1.0.0)"
+        required: false
+        default: "1.0.0"
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build Project
+        shell: pwsh
+        run: |
+          # 使用 Release 配置编译 x86 版本
+          msbuild FrpManager.sln /p:Configuration=Release /p:Platform=x86 /v:m
+
+      - name: Prepare Assets
+        shell: pwsh
+        run: |
+          # 检查生成的 exe 路径
+          $exePath = "Release\FrpManager.exe"
+          
+          if (Test-Path $exePath) {
+              # 1. 把 exe 复制到根目录方便发布
+              Copy-Item $exePath -Destination ".\FrpManager.exe"
+              # 2. 将 exe 压缩成 zip
+              Compress-Archive -Path $exePath -DestinationPath ".\FrpManager.zip"
+              Write-Host "资源准备成功：EXE 和 ZIP 已就绪。"
+          } else {
+              Write-Host "错误：在 Release 目录没找到 FrpManager.exe"
+              ls -R # 打印目录结构方便排查
+              throw "编译失败，文件未生成。"
+          }
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          name: Release v${{ github.event.inputs.version }}
+          # 同时上传这两个文件
+          files: |
+            .\FrpManager.zip
+            .\FrpManager.exe
+          allowUpdates: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
