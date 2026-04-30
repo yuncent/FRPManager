@@ -23,7 +23,7 @@ FRP Manager 是一个基于 C++ 开发的轻量级 Windows 客户端，旨在为
 
 ## 使用说明
 1. 点击 **设置 (Settings)** 选择包含 `frpc.exe` 或 `frps.exe` 的 FRP 程序根目录。
-2. 点击 **编辑配置 (Edit Config)** 修改对应的 `.toml` 规则。
+2. 点击 **编辑配置 (Edit Config)** 修改对应的 `.toml` 规则。（右键先默认toml打开方式工具，比如记事本）
 3. 点击 **启动 (Start)** 开始运行服务。
 4. 勾选 **开机启动 (Auto-Start)** 开启自动化运行。
 
